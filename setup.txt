@@ -4,9 +4,7 @@ make changes
 rake build
 ---- test local gem changes, working folder---
 in Gemfile - gem 'shortener', path: "../shortener"
-bundle exec gem uninstall foo
+bundle exec gem uninstall shortener
 bundle update shortener
 --once tested...update Gemfile
-gem 'foo',
-  :git => '/Path/to/local/git/repo',
-  :branch => 'v1'
+gem 'shortener', :git => 'https://github.com/mike1011/shortener', :branch => 'v1'
