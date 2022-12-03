@@ -9,7 +9,7 @@ class CreateShortenedUrlsTable < ActiveRecord::Migration[4.2]
       t.text :url, null: false, length: 2083
 
       # the unique key
-      t.string :unique_key, limit: 10, null: false
+      t.string :unique_key, limit: 20, null: false
 
       # a category to help categorize shortened urls
       t.string :category
@@ -19,6 +19,11 @@ class CreateShortenedUrlsTable < ActiveRecord::Migration[4.2]
 
       # valid until date for expirable urls
       t.datetime :expires_at
+
+      ##adding custom fields
+      t.integer :user_id, null: false, index:true
+      t.text :description
+      t.string :expiration_type
 
       t.timestamps
     end

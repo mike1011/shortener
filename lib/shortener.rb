@@ -14,9 +14,9 @@ module Shortener
   mattr_accessor :subdomain
   self.subdomain = false
 
-  # default key length: 5 characters
+  # default key length: 20 characters
   mattr_accessor :unique_key_length
-  self.unique_key_length = 5
+  self.unique_key_length = 20
 
   # character set to chose from:
   #  :alphanum     // a-z0-9                                       ## has about 60 million possible combos

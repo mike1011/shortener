@@ -1,0 +1,12 @@
+fork the gem
+clone on local
+make changes
+rake build
+---- test local gem changes, working folder---
+in Gemfile - gem 'shortener', path: "../shortener"
+bundle exec gem uninstall foo
+bundle update shortener
+--once tested...update Gemfile
+gem 'foo',
+  :git => '/Path/to/local/git/repo',
+  :branch => 'v1'

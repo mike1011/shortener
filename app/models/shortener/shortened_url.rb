@@ -1,8 +1,12 @@
 class Shortener::ShortenedUrl < Shortener::Record
 
   REGEX_LINK_HAS_PROTOCOL = Regexp.new('\Ahttp:\/\/|\Ahttps:\/\/', Regexp::IGNORECASE)
+  EXPIRATION_TYPES = ["One time", "7 Days", "15 Days", "30 Days"].freeze
 
   validates :url, presence: true
+  validates :owner, presence: true
+  validates :user_id, presence: true
+  validates :expiration_type, inclusion: { in: EXPIRATION_TYPES, message: "%{value} is not a valid expiration" }
 
   around_create :generate_unique_key
 
@@ -29,10 +33,30 @@ class Shortener::ShortenedUrl < Shortener::Record
     URI.parse(url).normalize.to_s
   end
 
+  ## get expires_at based on expiration_type
+  def self.get_expires_at(expiration_type)
+    raise "Expiration Type is invalid.Valid values are #{EXPIRATION_TYPES.join(', ')}" unless EXPIRATION_TYPES.include?(expiration_type)
+    case expiration_type
+    when EXPIRATION_TYPES[0]
+      DateTime.now + 7
+    when EXPIRATION_TYPES[1]
+      DateTime.now + 7
+    when EXPIRATION_TYPES[2]
+      DateTime.now + 15
+    when EXPIRATION_TYPES[3]
+      DateTime.now + 30
+    else
+      DateTime.now + 7
+    end
+
+  end
+
   # generate a shortened link from a url
+  # Usage - Shortener::ShortenedUrl.generate!("https://sampleurl.com", owner: Image.first, description: "hello", expiration_type: "30 Days", user_id: User.f
+    #irst.id)
   # link to a user if one specified
   # throw an exception if anything goes wrong
-  def self.generate!(destination_url, owner: nil, custom_key: nil, expires_at: nil, fresh: false, category: nil)
+  def self.generate!(destination_url, owner: nil, custom_key: nil, expires_at: nil, fresh: false, category: nil, description:nil, expiration_type: nil, user_id: nil)
     # if we get a shortened_url object with a different owner, generate
     # new one for the new owner. Otherwise return same object
     if destination_url.is_a? Shortener::ShortenedUrl
@@ -43,9 +67,12 @@ class Shortener::ShortenedUrl < Shortener::Record
           destination_url.url,
           owner:      owner,
           custom_key: custom_key,
-          expires_at: expires_at,
+          expires_at: get_expires_at(expiration_type),
           fresh:      fresh,
-          category:   category
+          category:   category,
+          description: description,
+          expiration_type: expiration_type,
+          user_id: user_id
         )
       end
     else
@@ -56,21 +83,27 @@ class Shortener::ShortenedUrl < Shortener::Record
       scope.where(url: url_to_save, category: category).send(
         creation_method,
         custom_key: custom_key,
-        expires_at: expires_at
+        expires_at: get_expires_at(expiration_type),
+        user_id: user_id,
+        description: description,
+        expiration_type: expiration_type
       )
     end
   end
 
   # return shortened url on success, nil on failure
-  def self.generate(destination_url, owner: nil, custom_key: nil, expires_at: nil, fresh: false, category: nil)
+  def self.generate(destination_url, owner: nil, custom_key: nil, expires_at: nil, fresh: false, category: nil, description:nil, expiration_type: nil, user_id: nil)
     begin
       generate!(
         destination_url,
         owner: owner,
         custom_key: custom_key,
-        expires_at: expires_at,
+        expires_at: get_expires_at(expiration_type),
         fresh: fresh,
-        category: category
+        category: category,
+        description: description,
+        expiration_type: expiration_type,
+        user_id: user_id
       )
     rescue => e
       logger.info e
